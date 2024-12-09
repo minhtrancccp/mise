@@ -1,5 +1,26 @@
 # Changelog
 
+## [2024.12.4](https://github.com/jdx/mise/compare/v2024.12.3..v2024.12.4) - 2024-12-09
+
+### 🚀 Features
+
+- add staged files to `mise generate git-pre-commit` by [@jdx](https://github.com/jdx) in [#3410](https://github.com/jdx/mise/pull/3410)
+- shell hooks by [@jdx](https://github.com/jdx) in [#3414](https://github.com/jdx/mise/pull/3414)
+- added cowsay by [@jdx](https://github.com/jdx) in [#3420](https://github.com/jdx/mise/pull/3420)
+
+### 🐛 Bug Fixes
+
+- do not set debug mode when calling `mise -v` by [@jdx](https://github.com/jdx) in [#3418](https://github.com/jdx/mise/pull/3418)
+
+### 📚 Documentation
+
+- Small documentation improvements by [@hverlin](https://github.com/hverlin) in [#3413](https://github.com/jdx/mise/pull/3413)
+- updated demo.gif by [@jdx](https://github.com/jdx) in [#3419](https://github.com/jdx/mise/pull/3419)
+
+### 🔍 Other Changes
+
+- Update walkthrough.md by [@jdx](https://github.com/jdx) in [c3aa2d0](https://github.com/jdx/mise/commit/c3aa2d0f0b5269e432fa78ba4545b0320be55826)
+
 ## [2024.12.3](https://github.com/jdx/mise/compare/v2024.12.2..v2024.12.3) - 2024-12-08
 
 ### 🚀 Features
