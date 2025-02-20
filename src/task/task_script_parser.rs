@@ -4,7 +4,7 @@ use crate::exit::exit;
 use crate::shell::ShellType;
 use crate::task::Task;
 use crate::tera::get_tera;
-use eyre::Result;
+use eyre::{Context, Result};
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::iter::once;
@@ -278,8 +278,11 @@ impl TaskScriptParser {
         tera_ctx.insert("env", &env);
         let scripts = scripts
             .iter()
-            .map(|s| tera.render_str(s.trim(), &tera_ctx).unwrap())
-            .collect();
+            .map(|s| {
+                tera.render_str(s.trim(), &tera_ctx)
+                    .wrap_err_with(|| s.to_string())
+            })
+            .collect::<Result<Vec<String>>>()?;
         let mut cmd = usage::SpecCommand::default();
         // TODO: ensure no gaps in args, e.g.: 1,2,3,4,5
         let arg_order = arg_order.lock().unwrap();
@@ -357,7 +360,7 @@ pub fn replace_template_placeholders_with_args(
                 &escape(value),
             );
         }
-        script = re.replace_all(&script, "").to_string();
+        script = re.replace_all(&script, "false").to_string();
         out.push(script);
     }
     Ok(out)
@@ -465,6 +468,14 @@ mod tests {
             replace_template_placeholders_with_args(&task, &spec, &scripts, &["--foo".to_string()])
                 .unwrap();
         assert_eq!(scripts, vec!["echo true"]);
+
+        let scripts = vec!["echo {{ flag(name='foo') }}".to_string()];
+        let (scripts, spec) = parser
+            .parse_run_scripts(&task, &scripts, &Default::default())
+            .unwrap();
+        assert_eq!(scripts, vec!["echo MISE_TASK_ARG:foo:MISE_TASK_ARG"]);
+        let scripts = replace_template_placeholders_with_args(&task, &spec, &scripts, &[]).unwrap();
+        assert_eq!(scripts, vec!["echo false"]);
     }
 
     #[test]

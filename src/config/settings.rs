@@ -40,7 +40,7 @@ pub enum SettingsType {
 pub struct SettingsMeta {
     // pub key: String,
     pub type_: SettingsType,
-    // pub description: String,
+    pub description: &'static str,
 }
 
 #[derive(
@@ -120,11 +120,6 @@ impl Settings {
         if !settings.legacy_version_file {
             settings.idiomatic_version_file = false;
         }
-        if !settings.idiomatic_version_file_disable_tools.is_empty() {
-            settings
-                .disable_tools
-                .extend(settings.idiomatic_version_file_disable_tools.clone());
-        }
         if settings.raw {
             settings.jobs = 1;
         }
@@ -177,6 +172,9 @@ impl Settings {
             }
         }
         settings.set_hidden_configs();
+        if cfg!(test) {
+            settings.experimental = true;
+        }
         let settings = Arc::new(settings);
         *BASE_SETTINGS.write().unwrap() = Some(settings.clone());
         time!("try_get done");

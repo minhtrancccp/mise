@@ -2,7 +2,7 @@
 
 - **Usage**: `mise generate git-pre-commit [FLAGS]`
 - **Aliases**: `pre-commit`
-- **Source code**: [`src/cli/generate/git-pre-commit.rs`](https://github.com/jdx/mise/blob/main/src/cli/generate/git-pre-commit.rs)
+- **Source code**: [`src/cli/generate/git_pre_commit.rs`](https://github.com/jdx/mise/blob/main/src/cli/generate/git_pre_commit.rs)
 
 [experimental] Generate a git pre-commit hook
 
@@ -10,6 +10,8 @@ This command generates a git pre-commit hook that runs a mise task like `mise ru
 when you commit changes to your repository.
 
 Staged files are passed to the task as `STAGED`.
+
+For more advanced pre-commit functionality, see mise's sister project: <https://hk.jdx.dev/>
 
 ## Flags
 

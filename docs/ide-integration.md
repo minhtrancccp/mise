@@ -60,17 +60,17 @@ end
 :::
 
 This assumes that `mise` is on `PATH`. If it is not, you'll need to use the absolute path (
-e.g.: `eval "$($HOME/.local/bin/mise activate zsh)"`).
+e.g.: `eval "$($HOME/.local/bin/mise activate zsh --shims)"`).
 
 Here is an example showing that VSCode will use `node` provided by `mise`:
 
 ::: tabs
 === VSCode
 
-[![vscode using shims](./shims-vscode.png)](./shims-vscode.png)
+![vscode using shims](./shims-vscode.png)
 
 === IntelliJ
-[![intellij using shims](./shims-intellij.png)](./shims-intellij.png)
+![intellij using shims](./shims-intellij.png)
 :::
 
 As mentioned above, using `shims` doesn't work with all mise features. For example, arbitrary [env vars](./environments/) in `[env]` will
@@ -101,6 +101,8 @@ let $PATH = $HOME . '/.local/share/mise/shims:' . $PATH
 -- Prepend mise shims to PATH
 vim.env.PATH = vim.env.HOME .. "/.local/share/mise/shims:" .. vim.env.PATH
 ```
+
+For a better Treesitter and LSP integration, check out the [neovim cookbook](./mise-cookbook/neovim.md).
 
 ## emacs
 

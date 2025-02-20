@@ -13,6 +13,11 @@ however that
 will only setup the global tools. It won't modify the environment variables when entering into a
 different project.
 
+::: warning
+`mise activate --shims` does not support all the features of `mise activate`.<br>
+See [shims vs path](/dev-tools/shims.html#shims-vs-path) for more info.
+:::
+
 Also see the [shebang](/tips-and-tricks#shebang) example for a way to make scripts call mise to get
 the runtime.
 That is another way to use mise without activation.
@@ -37,12 +42,6 @@ Use `mise self-update`
 to update it. `mise cache clean` can be used to wipe the internal cache and `mise implode` can be
 used
 to remove everything except config.
-
-Before submitting a ticket, it's a good idea to test what you were doing with asdf. That way we can
-rule
-out if the issue is with mise or if it's with a particular plugin. For example,
-if `mise install python@latest`
-doesn't work, try running `asdf install python latest` to see if it's an issue with asdf-python.
 
 Lastly, there is `mise doctor` which will show diagnostic information and any warnings about issues
 detected with your setup. If you submit a bug report, please include the output of `mise doctor`.
@@ -135,7 +134,7 @@ HTTP status client error (403 Forbidden) for url
 This can happen if the tool is hosted on GitHub, and you've hit the API rate limit. This is especially
 common running mise in a CI environment like GitHub Actions. If you don't have a `GITHUB_TOKEN`
 set, the rate limit is quite low. You can fix this by creating a GitHub token (which needs no scopes)
-by going to <https://github.com/settings/tokens> and setting it as an environment variable. You can
+by going to [https://github.com/settings/tokens/new](https://github.com/settings/tokens/new?description=MISE_GITHUB_TOKEN) and setting it as an environment variable. You can
 use any of the following (in order of preference):
 
 - `MISE_GITHUB_TOKEN`

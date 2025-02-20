@@ -5,7 +5,7 @@ use crate::cli::args::BackendArg;
 use crate::cmd::CmdLineRunner;
 use crate::config::{Config, SETTINGS};
 use crate::file::{display_path, TarOptions};
-use crate::git::Git;
+use crate::git::{CloneOptions, Git};
 use crate::http::{HTTP, HTTP_FETCH};
 use crate::install_context::InstallContext;
 use crate::toolset::{ToolRequest, ToolVersion, Toolset};
@@ -25,6 +25,14 @@ use xx::regex;
 #[derive(Debug)]
 pub struct PythonPlugin {
     ba: BackendArg,
+}
+
+pub fn python_path(tv: &ToolVersion) -> PathBuf {
+    if cfg!(windows) {
+        tv.install_path().join("python.exe")
+    } else {
+        tv.install_path().join("bin/python")
+    }
 }
 
 impl PythonPlugin {
@@ -58,7 +66,11 @@ impl PythonPlugin {
         file::create_dir_all(self.python_build_path().parent().unwrap())?;
         let git = Git::new(self.python_build_path());
         let pr = ctx.map(|ctx| &ctx.pr);
-        git.clone(&SETTINGS.python.pyenv_repo, pr)?;
+        let mut clone_options = CloneOptions::default();
+        if let Some(pr) = pr {
+            clone_options = clone_options.pr(pr);
+        }
+        git.clone(&SETTINGS.python.pyenv_repo, clone_options)?;
         Ok(())
     }
     fn update_python_build(&self) -> eyre::Result<()> {
@@ -70,14 +82,6 @@ impl PythonPlugin {
         let git = Git::new(self.python_build_path());
         plugins::core::run_fetch_task_with_timeout(move || git.update(None))?;
         Ok(())
-    }
-
-    fn python_path(&self, tv: &ToolVersion) -> PathBuf {
-        if cfg!(windows) {
-            tv.install_path().join("python.exe")
-        } else {
-            tv.install_path().join("bin/python")
-        }
     }
 
     fn fetch_precompiled_remote_versions(&self) -> eyre::Result<&Vec<(String, String, String)>> {
@@ -182,7 +186,7 @@ impl PythonPlugin {
         let url = format!(
             "https://github.com/astral-sh/python-build-standalone/releases/download/{tag}/{filename}"
         );
-        let filename = url.split('/').last().unwrap();
+        let filename = url.split('/').next_back().unwrap();
         let install = tv.install_path();
         let download = tv.download_path();
         let tarball_path = download.join(filename);
@@ -322,7 +326,7 @@ impl PythonPlugin {
             if !virtualenv.exists() {
                 if SETTINGS.python.venv_auto_create {
                     info!("setting up virtualenv at: {}", virtualenv.display());
-                    let mut cmd = CmdLineRunner::new(self.python_path(tv))
+                    let mut cmd = CmdLineRunner::new(python_path(tv))
                         .arg("-m")
                         .arg("venv")
                         .arg(&virtualenv)
@@ -351,7 +355,7 @@ impl PythonPlugin {
 
     // fn check_venv_python(&self, virtualenv: &Path, tv: &ToolVersion) -> eyre::Result<()> {
     //     let symlink = virtualenv.join("bin/python");
-    //     let target = self.python_path(tv);
+    //     let target = python_path(tv);
     //     let symlink_target = symlink.read_link().unwrap_or_default();
     //     ensure!(
     //         symlink_target == target,
@@ -370,7 +374,7 @@ impl PythonPlugin {
         pr: &Box<dyn SingleReport>,
     ) -> eyre::Result<()> {
         pr.set_message("python --version".into());
-        CmdLineRunner::new(self.python_path(tv))
+        CmdLineRunner::new(python_path(tv))
             .with_pr(pr)
             .arg("--version")
             .envs(config.env()?)
