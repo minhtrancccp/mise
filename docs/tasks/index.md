@@ -31,7 +31,7 @@ run = "cargo build"
 
 You can then run the task with `mise run build` (or `mise build` if it doesn't conflict with an existing command).
 
-- See the [TOML tasks](./toml-tasks.html) for more information.
+- See [TOML tasks](./toml-tasks.html) for more information.
 - See [Running Tasks](./running-tasks.html) to learn how to run tasks.
 
 ## File Tasks
@@ -53,7 +53,7 @@ The following environment variables are passed to the task:
 
 - `MISE_ORIGINAL_CWD`: The original working directory from where the task was run.
 - `MISE_CONFIG_ROOT`: The directory containing the `mise.toml` file where the task was defined or if the config path is something like `~/src/myproj/.config/mise.toml`, it will be `~/src/myproj`.
-- `MISE_PROJECT_ROOT` or `root`: The root of the project.
+- `MISE_PROJECT_ROOT`: The root of the project.
 - `MISE_TASK_NAME`: The name of the task being run.
 - `MISE_TASK_DIR`: The directory containing the task script.
 - `MISE_TASK_FILE`: The full path to the task script.

@@ -27,6 +27,7 @@ use xx::regex;
 
 mod deps;
 mod task_dep;
+pub mod task_file_providers;
 mod task_script_parser;
 pub mod task_sources;
 
@@ -54,6 +55,8 @@ pub struct Task {
     pub cf: Option<Arc<dyn ConfigFile>>,
     #[serde(skip)]
     pub config_root: Option<PathBuf>,
+    #[serde(default)]
+    pub confirm: Option<String>,
     #[serde(default, deserialize_with = "deserialize_arr")]
     pub depends: Vec<TaskDep>,
     #[serde(default, deserialize_with = "deserialize_arr")]
@@ -176,6 +179,7 @@ impl Task {
             .or(p.parse_str("alias").map(|s| vec![s]))
             .or(p.parse_str("aliases").map(|s| vec![s]))
             .unwrap_or_default();
+        task.confirm = p.parse_str("confirm");
         task.description = p.parse_str("description").unwrap_or_default();
         task.sources = p.parse_array("sources").unwrap_or_default();
         task.outputs = info.get("outputs").map(|to| to.into()).unwrap_or_default();
@@ -220,7 +224,8 @@ impl Task {
             return true;
         }
         let pat = pat.rsplitn(2, '.').last().unwrap_or_default();
-        self.name == pat || self.aliases.contains(&pat.to_string())
+        self.name.rsplitn(2, '.').last().unwrap_or_default() == pat
+            || self.aliases.contains(&pat.to_string())
     }
 
     pub fn task_dir() -> PathBuf {
@@ -241,7 +246,7 @@ impl Task {
     }
 
     pub fn prefix(&self) -> String {
-        format!("[{}]", self.name)
+        format!("[{}]", self.display_name())
     }
 
     pub fn run(&self) -> &Vec<String> {
@@ -264,8 +269,11 @@ impl Task {
             .filter_ok(|t| t.name != self.name)
             .collect::<Result<Vec<_>>>()?;
         for dep in depends.clone() {
-            depends.extend(dep.all_depends()?);
+            let mut extra = dep.all_depends()?;
+            extra.retain(|t| t.name != self.name); // prevent depending on ourself
+            depends.extend(extra);
         }
+        let depends = depends.into_iter().unique().collect();
         Ok(depends)
     }
 
@@ -307,7 +315,12 @@ impl Task {
     ) -> Result<(usage::Spec, Vec<String>)> {
         let (mut spec, scripts) = if let Some(file) = &self.file {
             let spec = usage::Spec::parse_script(file)
-                .inspect_err(|e| debug!("failed to parse task file with usage: {e}"))
+                .inspect_err(|e| {
+                    warn!(
+                        "failed to parse task file {} with usage: {e:?}",
+                        file::display_path(file)
+                    )
+                })
                 .unwrap_or_default();
             (spec, vec![])
         } else {
@@ -567,6 +580,7 @@ impl Default for Task {
             config_source: PathBuf::new(),
             cf: None,
             config_root: None,
+            confirm: None,
             depends: vec![],
             depends_post: vec![],
             wait_for: vec![],
@@ -640,7 +654,7 @@ impl TreeItem for (&Graph<Task, ()>, NodeIndex) {
 
     fn write_self(&self) -> std::io::Result<()> {
         if let Some(w) = self.0.node_weight(self.1) {
-            miseprint!("{}", w.name)?;
+            miseprint!("{}", w.display_name())?;
         }
         Ok(())
     }

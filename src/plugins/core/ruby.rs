@@ -8,7 +8,7 @@ use crate::cmd::CmdLineRunner;
 use crate::config::{Config, Settings, SETTINGS};
 use crate::duration::DAILY;
 use crate::env::PATH_KEY;
-use crate::git::Git;
+use crate::git::{CloneOptions, Git};
 use crate::github::GithubRelease;
 use crate::http::{HTTP, HTTP_FETCH};
 use crate::install_context::InstallContext;
@@ -81,7 +81,11 @@ impl RubyPlugin {
         file::remove_all(&tmp)?;
         file::create_dir_all(tmp.parent().unwrap())?;
         let git = Git::new(tmp.clone());
-        git.clone(&SETTINGS.ruby.ruby_build_repo, pr)?;
+        let mut clone_options = CloneOptions::default();
+        if let Some(pr) = pr {
+            clone_options = clone_options.pr(pr);
+        }
+        git.clone(&SETTINGS.ruby.ruby_build_repo, clone_options)?;
 
         cmd!("sh", "install.sh")
             .env("PREFIX", self.ruby_build_path())
@@ -123,7 +127,11 @@ impl RubyPlugin {
         file::remove_all(&tmp)?;
         file::create_dir_all(tmp.parent().unwrap())?;
         let git = Git::new(tmp.clone());
-        git.clone(&settings.ruby.ruby_install_repo, pr)?;
+        let mut clone_options = CloneOptions::default();
+        if let Some(pr) = pr {
+            clone_options = clone_options.pr(pr);
+        }
+        git.clone(&settings.ruby.ruby_install_repo, clone_options)?;
 
         cmd!("make", "install")
             .env("PREFIX", self.ruby_install_path())
@@ -156,10 +164,6 @@ impl RubyPlugin {
     fn ruby_install_recently_updated(&self) -> Result<bool> {
         let updated_at = file::modified_duration(&self.ruby_install_path())?;
         Ok(updated_at < DAILY)
-    }
-
-    fn ruby_path(&self, tv: &ToolVersion) -> PathBuf {
-        tv.install_path().join("bin/ruby")
     }
 
     fn gem_path(&self, tv: &ToolVersion) -> PathBuf {
@@ -195,39 +199,6 @@ impl RubyPlugin {
                 .execute()?;
         }
         Ok(())
-    }
-
-    fn test_ruby(
-        &self,
-        config: &Config,
-        tv: &ToolVersion,
-        pr: &Box<dyn SingleReport>,
-    ) -> Result<()> {
-        pr.set_message("ruby -v".into());
-        CmdLineRunner::new(self.ruby_path(tv))
-            .with_pr(pr)
-            .arg("-v")
-            .envs(config.env()?)
-            .execute()
-    }
-
-    fn test_gem(
-        &self,
-        config: &Config,
-        tv: &ToolVersion,
-        pr: &Box<dyn SingleReport>,
-    ) -> Result<()> {
-        if !regex!(r#"^\d"#).is_match(&self.tool_name()) {
-            // don't expect gem for artichoke
-            return Ok(());
-        }
-        pr.set_message("gem -v".into());
-        CmdLineRunner::new(self.gem_path(tv))
-            .with_pr(pr)
-            .arg("-v")
-            .envs(config.env()?)
-            .env(&*PATH_KEY, plugins::core::path_env_with_tv_path(tv)?)
-            .execute()
     }
 
     fn ruby_build_version(&self) -> Result<String> {
@@ -389,9 +360,7 @@ impl Backend for RubyPlugin {
         let config = Config::get();
         self.install_cmd(&config, &tv, &ctx.pr)?.execute()?;
 
-        self.test_ruby(&config, &tv, &ctx.pr)?;
         self.install_rubygems_hook(&tv)?;
-        self.test_gem(&config, &tv, &ctx.pr)?;
         if let Err(err) = self.install_default_gems(&config, &tv, &ctx.pr) {
             warn!("failed to install default ruby gems {err:#}");
         }

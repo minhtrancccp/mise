@@ -60,17 +60,17 @@ end
 :::
 
 This assumes that `mise` is on `PATH`. If it is not, you'll need to use the absolute path (
-e.g.: `eval "$($HOME/.local/bin/mise activate zsh)"`).
+e.g.: `eval "$($HOME/.local/bin/mise activate zsh --shims)"`).
 
 Here is an example showing that VSCode will use `node` provided by `mise`:
 
 ::: tabs
 === VSCode
 
-[![vscode using shims](./shims-vscode.png)](./shims-vscode.png)
+![vscode using shims](./shims-vscode.png)
 
 === IntelliJ
-[![intellij using shims](./shims-intellij.png)](./shims-intellij.png)
+![intellij using shims](./shims-intellij.png)
 :::
 
 As mentioned above, using `shims` doesn't work with all mise features. For example, arbitrary [env vars](./environments/) in `[env]` will
@@ -102,6 +102,8 @@ let $PATH = $HOME . '/.local/share/mise/shims:' . $PATH
 vim.env.PATH = vim.env.HOME .. "/.local/share/mise/shims:" .. vim.env.PATH
 ```
 
+For a better Treesitter and LSP integration, check out the [neovim cookbook](./mise-cookbook/neovim.md).
+
 ## emacs
 
 ### Traditional shims way
@@ -113,9 +115,9 @@ vim.env.PATH = vim.env.HOME .. "/.local/share/mise/shims:" .. vim.env.PATH
 (setq exec-path (append exec-path '("/home/user/.local/share/mise/shims")))
 ```
 
-### Use with package [mise.el](https://github.com/liuyinz/mise.el)
+### Use with package [mise.el](https://github.com/eki3z/mise.el)
 
-<https://github.com/liuyinz/mise.el>
+<https://github.com/eki3z/mise.el>
 
 > A GNU Emacs library which uses the mise tool to determine per-directory/project environment variables and then set those environment variables on a per-buffer basis.
 

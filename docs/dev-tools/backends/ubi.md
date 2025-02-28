@@ -46,6 +46,17 @@ use the `exe` option to specify the executable name:
 "ubi:cli/cli" = { version = "latest", exe = "gh" } # github's cli
 ```
 
+### `rename_exe`
+
+The `rename_exe` option allows you to specify the name of the executable once it has been extracted.
+
+use the `rename_exe` option to specify the target executable name:
+
+```toml
+[tools]
+"ubi:cli/cli" = { version = "latest", exe = "gh", rename_exe = "github" } # github's cli
+```
+
 ### `matching`
 
 Set a string to match against the release filename when there are multiple files for your
@@ -55,7 +66,38 @@ then this will be ignored.
 
 ```toml
 [tools]
-"ubi:BurntSushi/ripgrep" = { matching = "musl" }
+"ubi:BurntSushi/ripgrep" = { version = "latest", matching = "musl" }
+```
+
+### `extract_all`
+
+Set to `true` to extract all files in the tarball instead of just the "bin". Not compatible with `exe` nor `rename_exe`.
+
+```toml
+[tools]
+"ubi:helix-editor/helix" = { version = "latest", extract_all = "true" }
+```
+
+### `bin_path`
+
+The directory in the tarball where the binary(s) are located. This is useful when the binary is not in the root of the tarball.
+This only makes sense when `extract_all` is set to `true`.
+
+```toml
+[tools]
+"ubi:BurntSushi/ripgrep" = { version = "latest", extract_all = "true", bin_path = "target/release" }
+```
+
+### `tag_regex`
+
+Set a regex to filter out tags that don't match the regex. This is useful when a vendor has a bunch of
+releases for unrelated CLIs in the same repo. For example, `cargo-bins/cargo-binstall` has a bunch of
+releases for unrelated CLIs that are not `cargo-binstall`. This option can be used to filter out those
+releases.
+
+```toml
+[tools]
+"ubi:cargo-bins/cargo-binstall" = { version = "latest", tag_regex = "^\d+\." }
 ```
 
 ## Supported Ubi Syntax

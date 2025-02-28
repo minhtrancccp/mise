@@ -114,13 +114,7 @@ static RUNNING_PIDS: Lazy<Mutex<HashSet<u32>>> = Lazy::new(Default::default);
 
 impl<'a> CmdLineRunner<'a> {
     pub fn new<P: AsRef<OsStr>>(program: P) -> Self {
-        let mut cmd = if cfg!(windows) {
-            let mut cmd = Command::new("cmd.exe");
-            cmd.arg("/c").arg(program);
-            cmd
-        } else {
-            Command::new(program)
-        };
+        let mut cmd = Command::new(program);
         cmd.stdin(Stdio::null());
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
@@ -248,6 +242,13 @@ impl<'a> CmdLineRunner<'a> {
         None
     }
 
+    pub fn opt_arg<S: AsRef<OsStr>>(mut self, arg: Option<S>) -> Self {
+        if let Some(arg) = arg {
+            self.cmd.arg(arg);
+        }
+        self
+    }
+
     pub fn arg<S: AsRef<OsStr>>(mut self, arg: S) -> Self {
         self.cmd.arg(arg.as_ref());
         self
@@ -306,22 +307,28 @@ impl<'a> CmdLineRunner<'a> {
         let (tx, rx) = channel();
         if let Some(stdout) = cp.stdout.take() {
             thread::spawn({
+                let name = self.to_string();
                 let tx = tx.clone();
                 move || {
                     for line in BufReader::new(stdout).lines() {
-                        let line = line.unwrap();
-                        tx.send(ChildProcessOutput::Stdout(line)).unwrap();
+                        match line {
+                            Ok(line) => tx.send(ChildProcessOutput::Stdout(line)).unwrap(),
+                            Err(e) => warn!("Failed to read stdout for {name}: {e}"),
+                        }
                     }
                 }
             });
         }
         if let Some(stderr) = cp.stderr.take() {
             thread::spawn({
+                let name = self.to_string();
                 let tx = tx.clone();
                 move || {
                     for line in BufReader::new(stderr).lines() {
-                        let line = line.unwrap();
-                        tx.send(ChildProcessOutput::Stderr(line)).unwrap();
+                        match line {
+                            Ok(line) => tx.send(ChildProcessOutput::Stderr(line)).unwrap(),
+                            Err(e) => warn!("Failed to read stderr for {name}: {e}"),
+                        }
                     }
                 }
             });

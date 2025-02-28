@@ -47,7 +47,7 @@ impl SwiftPlugin {
                 None => "".into(),
             }
         );
-        let filename = url.split('/').last().unwrap();
+        let filename = url.split('/').next_back().unwrap();
         let tarball_path = tv.download_path().join(filename);
         if !tarball_path.exists() {
             pr.set_message(format!("download {filename}"));
@@ -197,6 +197,14 @@ fn platform_directory() -> String {
         "xcode".into()
     } else if cfg!(windows) {
         "windows10".into()
+    } else if let Ok(os_release) = &*os_release::OS_RELEASE {
+        let arch = SETTINGS.arch();
+        if os_release.id == "ubuntu" && arch == "aarch64" {
+            let retval = format!("{}{}-{}", os_release.id, os_release.version_id, arch);
+            retval.replace(".", "")
+        } else {
+            platform().replace(".", "")
+        }
     } else {
         platform().replace(".", "")
     }

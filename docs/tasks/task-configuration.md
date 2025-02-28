@@ -26,7 +26,7 @@ run = ["echo hello"]
 
 ### `run_windows`
 
-An alterative script to run when `mise run` is executed on windows:
+An alternative script to run when `mise run` is executed on windows:
 
 ```toml
 [tasks.build]
@@ -160,6 +160,20 @@ hide = true
 run = "echo my internal task"
 ```
 
+### `confirm`
+
+- **Type**: `string`
+
+A message to show before running the task. This is useful for tasks that are destructive or take a long
+time to run. The user will be prompted to confirm before the task is run.
+
+```toml
+[tasks.release]
+confirm = "Are you sure you want to cut a release?"
+description = 'Cut a new release'
+file = 'scripts/release.sh'
+```
+
 ### `raw`
 
 - **Type**: `bool`
@@ -208,7 +222,7 @@ has changed since the last build.
 The counterpart to `sources`, these are the files or directories that the task will create/modify after
 it executes.
 
-`auto = true` is an altnernative to specifying output files manually. In that case, mise will touch
+`auto = true` is an alternative to specifying output files manually. In that case, mise will touch
 an internally tracked file based on the hash of the task definition (stored in `~/.local/state/mise/task-outputs/<hash>` if you're curious).
 This is useful if you want `mise run` to execute when sources change but don't want to have to manually `touch`
 a file for `sources` to work.

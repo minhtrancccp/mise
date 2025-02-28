@@ -130,7 +130,7 @@ export default defineConfig({
           { text: "Tips & Tricks", link: "/tips-and-tricks" },
           {
             text: "Cookbook",
-            link: "/mise-cookbook",
+            link: "/mise-cookbook/",
             collapsed: true,
             items: [
               { text: "C++", link: "/mise-cookbook/cpp" },
@@ -170,7 +170,10 @@ export default defineConfig({
       },
     ],
 
-    socialLinks: [{ icon: "github", link: "https://github.com/jdx/mise" }],
+    socialLinks: [
+      { icon: "github", link: "https://github.com/jdx/mise" },
+      { icon: "discord", link: "https://discord.gg/UBa7pJUN7Z" },
+    ],
 
     editLink: {
       pattern: "https://github.com/jdx/mise/edit/main/docs/:path",
@@ -187,7 +190,7 @@ export default defineConfig({
     footer: {
       message:
         'Licensed under the MIT License. Maintained by <a href="https://github.com/jdx">@jdx</a> and <a href="https://github.com/jdx/mise/graphs/contributors">friends</a>.',
-      copyright: 'Copyright © 2024 <a href="https://github.com/jdx">@jdx</a>',
+      copyright: `Copyright © ${new Date().getFullYear()} <a href="https://github.com/jdx">@jdx</a>`,
     },
     carbonAds: {
       code: "CWYIPKQN",
@@ -247,6 +250,15 @@ export default defineConfig({
     pageData.frontmatter.head.push([
       "link",
       { rel: "canonical", href: canonicalUrl },
+    ]);
+    pageData.frontmatter.head.push([
+      "link",
+      {
+        rel: "sitemap",
+        href: "https://mise.jdx.dev/sitemap.xml",
+        type: "application/xml",
+        title: "Sitemap",
+      },
     ]);
   },
 });

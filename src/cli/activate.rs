@@ -12,7 +12,7 @@ use itertools::Itertools;
 ///
 /// This should go into your shell's rc file or login shell.
 /// Otherwise, it will only take effect in the current session.
-/// (e.g. ~/.zshrc, ~/.zprofile, ~/.zshenv, ~/.bashrc, ~/.bash_profile, ~/.profile, ~/.config/fish/config.fish)
+/// (e.g. ~/.zshrc, ~/.zprofile, ~/.zshenv, ~/.bashrc, ~/.bash_profile, ~/.profile, ~/.config/fish/config.fish, or $PROFILE for powershell)
 ///
 /// Typically, this can be added with something like the following:
 ///
@@ -43,6 +43,9 @@ pub struct Activate {
     /// Effectively the same as:
     ///
     ///     PATH="$HOME/.local/share/mise/shims:$PATH"
+    ///
+    /// `mise activate --shims` does not support all the features of `mise activate`.
+    /// See https://mise.jdx.dev/dev-tools/shims.html#shims-vs-path for more information
     #[clap(long, verbatim_doc_comment)]
     shims: bool,
 
@@ -158,5 +161,6 @@ static AFTER_LONG_HELP: &str = color_print::cstr!(
     $ <bold>eval "$(mise activate zsh)"</bold>
     $ <bold>mise activate fish | source</bold>
     $ <bold>execx($(mise activate xonsh))</bold>
+    $ <bold>(&mise activate pwsh) | Out-String | Invoke-Expression</bold>
 "#
 );

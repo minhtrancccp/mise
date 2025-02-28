@@ -80,7 +80,8 @@ jobs:
           key: cargo-registry-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: cargo-registry
       - if: matrix.runs-on != 'ubuntu-latest'
-        run: rustup target add ${{matrix.target}}
+        # TODO: remove rustup update once 1.85.0 is released to images
+        run: rustup update && rustup target add ${{matrix.target}}
       - if: matrix.runs-on == 'ubuntu-latest'
         uses: taiki-e/install-action@cross
       - name: build-tarball
@@ -115,7 +116,8 @@ jobs:
             target: x86_64-pc-windows-msvc
     steps:
       - uses: actions/checkout@v4
-      - run: rustup target add ${{matrix.target}}
+      # TODO: remove rustup update once 1.85.0 is released to images
+      - run: rustup update && rustup target add ${{matrix.target}}
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{matrix.arch}}
@@ -254,10 +256,6 @@ jobs:
         with:
           node-version: "20.x"
           registry-url: "https://registry.npmjs.org"
-      - uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.RTX_SSH_KEY }}
-          known_hosts: ${{ secrets.RTX_KNOWN_HOSTS_AUR }}
       - uses: actions/download-artifact@v4
         with: { path: artifacts }
       - run: ls -R artifacts
@@ -272,7 +270,13 @@ jobs:
           merge-multiple: true
       - run: echo "${{ secrets.MINISIGN_KEY }}" >minisign.key
       - run: ls -R artifacts
-      - run: scripts/release.sh
+      - uses: actions/download-artifact@v4
+        with:
+          name: tarball-x86_64-unknown-linux-gnu
+          path: dist
+      - run: tar -C "$HOME" -xvf "dist/mise-$(./scripts/get-version.sh)-linux-x64.tar.zst"
+      - run: echo "$HOME/mise/bin" >> "$GITHUB_PATH"
+      - run: mise x -- scripts/release.sh
         env:
           CLOUDFLARE_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_ACCESS_KEY_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
@@ -299,40 +303,12 @@ jobs:
         with:
           token: ${{ secrets.RTX_GITHUB_BOT_TOKEN }}
           formula: mise
-  bump-aur:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [release]
-    if: startsWith(github.event.ref, 'refs/tags/v')
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.RTX_SSH_KEY }}
-          known_hosts: ${{ secrets.RTX_KNOWN_HOSTS_AUR }}
-      - name: Bump aur
-        run: ./scripts/release-aur.sh
-  bump-aur-bin:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [release]
-    if: startsWith(github.event.ref, 'refs/tags/v')
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.RTX_SSH_KEY }}
-          known_hosts: ${{ secrets.RTX_KNOWN_HOSTS_AUR }}
-      - name: Bump aur-bin
-        run: ./scripts/release-aur-bin.sh
   bump-alpine:
     runs-on: ubuntu-latest
     container: ghcr.io/jdx/mise:alpine
     timeout-minutes: 30
     needs: [release]
-    if: startsWith(github.event.ref, 'refs/tags/v') && endsWith(github.event.ref, '.0')
+    if: startsWith(github.event.ref, 'refs/tags/v') && endsWith(github.event.ref, '0')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

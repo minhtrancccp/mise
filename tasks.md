@@ -29,6 +29,12 @@
 
 - **Usage**: `docs:build`
 
+## `docs:preview`
+
+- Depends: docs:build
+
+- **Usage**: `docs:preview`
+
 ## `docs:release`
 
 - Depends: docs:build
@@ -131,8 +137,6 @@ User to run as
 
 ## `pre-commit`
 
-- Depends: render, lint
-
 - **Usage**: `pre-commit`
 
 ## `release`
@@ -173,12 +177,6 @@ User to run as
 - Depends: build
 
 - **Usage**: `render:mangen`
-
-## `render:registry`
-
-- Depends: build
-
-- **Usage**: `render:registry`
 
 ## `render:settings`
 
